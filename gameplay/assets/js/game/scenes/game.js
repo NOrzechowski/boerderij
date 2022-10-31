@@ -167,7 +167,7 @@ export default class Game extends Phaser.Scene {
     })
 
     this.dealText = this.add
-      .text(75, 350, ['DEAL CARDS'])
+      .text(75, 350, ['DEAL CARDS!'])
       .setFontSize(18)
       .setFontFamily('Trebuchet MS')
       .setColor('#00ffff')
