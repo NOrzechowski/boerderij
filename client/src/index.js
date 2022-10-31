@@ -4,8 +4,8 @@ import Game from "./scenes/game"
 const config = {
     type: Phaser.AUTO,
     parent: "boerderij",
-    width: 2000,
-    height: 780,
+    width: 4000,
+    height: 1560,
     scene: [
         Game
     ]

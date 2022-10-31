@@ -88,7 +88,11 @@ export default class Game extends Phaser.Scene {
         this.load.image('ace_clubs', 'src/assets/cards/ace_of_clubs.png');
         this.load.image('ace_diamonds', 'src/assets/cards/ace_of_diamonds.png');
         this.load.image('ace_hearts', 'src/assets/cards/ace_of_hearts.png');
-        this.load.image('ace_spades', 'src/assets/cards/ace_of_spades.png');
+        this.load.image('ace_spades', 'src/assets/card_back.png');
+
+        //Slots
+
+        this.load.image('slot_clubs_hi', 'src/assets/card_slot.png');
 
 
         // TODO: load remaining cards here
