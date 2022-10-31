@@ -4,6 +4,10 @@ Boerderij is a loved and orally passed down family game.
 
 ## Installation
 
+**Warning**
+
+> These instructions haven't been updated to reflect the migration to Elixir/Phoenix yet.
+
 Ensure you have Node and NPM installed.
 E.g. https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
 
