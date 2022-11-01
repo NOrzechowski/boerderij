@@ -117,7 +117,9 @@ export default class Game extends Phaser.Scene {
 
     this.socket = new Socket('ws:localhost:4000/socket')
     this.socket.connect()
-    this.channel = this.socket.channel('moves', {})
+    this.channel = this.socket.channel('moves', {
+      userId: Math.floor(Math.random() * 100) + 1
+    })
     console.log('try to join')
     this.channel
       .join()
@@ -139,31 +141,31 @@ export default class Game extends Phaser.Scene {
       self.dealText.disableInteractive()
     })
 
+    //TODO: this isn't working properly. Need to reference the users own dropzone?
     this.channel.on('moves:cardPlayed', function (val) {
       console.log('val yo: ', val)
       const { gameObject, isPlayerA, dropZone, card } = val
-      console.log('dropzone: ', dropZone)
+      console.log('gameObject: ', gameObject)
       //TODO: need improvements here
-      if (isPlayerA !== self.isPlayerA) {
-        let sprite = gameObject.textureKey
-        let suit = sprite.split('_')[1]
-        let number = sprite.split('_')[0]
-        console.log('suit, number', suit, number)
-        self.opponentCards.shift().destroy()
-        self.dropZone.data.values.cards.push(card)
-        console.log(
-          'self.dropZone.data.values.cards: ',
-          self.dropZone.data.values.cards
+      console.log(self)
+      // if (isPlayerA !== self.isPlayerA) {
+      let sprite = gameObject.textureKey
+      let suit = sprite.split('_')[1]
+      let number = sprite.split('_')[0]
+      console.log('suit, number', suit, number)
+      self.opponentCards?.shift()?.destroy()
+      console.log('self.dropZone.data.values.cards: ', dropZone)
+      dropZone.data?.cards?.push(card)
+
+      let renderedCard = new Card(self)
+      renderedCard
+        .render(
+          dropZone.x - 350 + dropZone.data?.values?.cards?.length || 1 * 50,
+          dropZone.y,
+          sprite
         )
-        let card = new Card(self)
-        card
-          .render(
-            self.dropZone.x - 350 + self.dropZone.data.values.cards.length * 50,
-            self.dropZone.y,
-            sprite
-          )
-          .disableInteractive()
-      }
+        .disableInteractive()
+      // }
     })
 
     this.dealText = this.add
@@ -203,6 +205,7 @@ export default class Game extends Phaser.Scene {
       }
     })
 
+    /** TODO: needs logic to test if correct card # as well as suit */
     this.input.on('drop', function (pointer, gameObject, dropZone) {
       let sprite = gameObject.texture.key
       let suit = sprite.split('_')[1]
@@ -217,7 +220,7 @@ export default class Game extends Phaser.Scene {
         gameObject.y = dropZone.y + 350 + dropZone.data.values.cards.length * 30
         gameObject.disableInteractive()
         self.channel.push('moves:cardPlayed', {
-          obj: gameObject,
+          gameObject: gameObject,
           isPlayerA: self.isPlayerA,
           dropZone: dropZone,
           sprite: sprite
