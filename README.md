@@ -48,8 +48,8 @@ When connected to postgres/ecto, the overall architecture and flow will work som
 - There, they can login.
 - Once logged in, they are presented with an option to start a new game or join an existing one.
 - If they opt to start a new game, they are taken to a _pending lobby_ screen that shows other users waiting to join.
-  - Behind the scenes, the schema will be initialized and linked to the current user.
-  - Candidate data models might be:
+- Behind the scenes, the schema will be initialized and linked to the current user.
+- Candidate data models might be:
 
 | Model/Table   | Description                                                                                                                  |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -60,10 +60,11 @@ When connected to postgres/ecto, the overall architecture and flow will work som
 | game_hand     | dynamic, fks to user, game_instance, cards. #-of-cards-dealt entries per game?                                               |
 | game_moves    | dynamic, fks to game_instance, users, game_hand. Will basically hold every move played, including # of chips in the pot, etc |
 
-    - With the database models initialized, the game id is available to share to friends
-    - As friends (users) join the game, they're linked with the current game_instance
-    - Finally, when the "start game" button is clicked with enough users in the lobby the game play commences
+- With the database models initialized, the game id is available to share to friends
+- As friends (users) join the game, they're linked with the current game_instance
+- Finally, when the "start game" button is clicked with enough users in the lobby the game play commences
 
 - Game play is controlled in the client through phaser & js & websockets that communicate back to the server.
+
 - Any logged in players can join any game if they are given a valid game id
 - (Future Feature) Users will be able to chat when in lobby or game
