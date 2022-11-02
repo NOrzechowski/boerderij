@@ -10,7 +10,7 @@ defmodule GameplayWeb.BoraMovesChannel do
   end
 
   def handle_info(:after_join, socket) do
-    broadcast!(socket, "moves:isPlayerA", nil)
+    # TODO: can broadcast info to others that someone joined here
     {:noreply, socket}
   end
 

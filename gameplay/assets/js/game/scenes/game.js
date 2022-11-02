@@ -130,7 +130,7 @@ export default class Game extends Phaser.Scene {
     })
 
     this.channel.on('moves:cardPlayed', function (val) {
-      const { gameObject, isPlayerA, dropZone: playedDropZone, card } = val
+      const { gameObject, dropZone: playedDropZone, card } = val
       const sprite = gameObject.textureKey
       const suit = sprite.split('_')[1]
       const number = sprite.split('_')[0]
