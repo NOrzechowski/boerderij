@@ -130,19 +130,21 @@ export default class Game extends Phaser.Scene {
     })
 
     this.channel.on('moves:cardPlayed', function (val) {
-      const { gameObject, dropZone: playedDropZone, card } = val
-      const sprite = gameObject.textureKey
-      const suit = sprite.split('_')[1]
-      const number = sprite.split('_')[0]
-      const dropZone = self.playableArea.getDropZoneBySuit(suit)
-      let renderedCard = new Card(self)
-      renderedCard
-        .render(
-          dropZone.x,
-          dropZone.y + 350 + (dropZone.data.values.cards.length + 1) * 30,
-          sprite
-        )
-        .disableInteractive()
+      const { userId, dropZone: playedDropZone, sprite } = val
+      if (userId != self.channel.params.userId) {
+        const suit = sprite.split('_')[1]
+        const number = sprite.split('_')[0]
+        const dropZone = self.playableArea.getDropZoneBySuit(suit)
+        dropZone.data.values.cards.push(sprite)
+        let renderedCard = new Card(self)
+        renderedCard
+          .render(
+            dropZone.x,
+            dropZone.y + 350 + dropZone.data.values.cards.length * 30,
+            sprite
+          )
+          .disableInteractive()
+      }
     })
 
     this.dealText = this.add
@@ -188,7 +190,7 @@ export default class Game extends Phaser.Scene {
       let suit = sprite.split('_')[1]
       let number = sprite.split('_')[0]
       const dropZoneSuit = dropZone.data.values.suit
-
+      console.log('dropping: ', self)
       //only drop if correct suit
       if (dropZoneSuit == suit) {
         dropZone.data.values.cards.push(sprite)
@@ -196,7 +198,7 @@ export default class Game extends Phaser.Scene {
         gameObject.y = dropZone.y + 350 + dropZone.data.values.cards.length * 30
         gameObject.disableInteractive()
         self.channel.push('moves:cardPlayed', {
-          gameObject: gameObject,
+          userId: self.channel.params.userId,
           dropZone: dropZone,
           sprite: sprite
         })
