@@ -1,6 +1,6 @@
 import Card from '../helpers/card'
 import Dealer from '../helpers/dealer'
-import Zone from '../helpers/zone'
+import PlayableArea from '../helpers/playableArea'
 import Deck from '../helpers/deck'
 const { Socket } = require('phoenix-channels')
 
@@ -12,7 +12,6 @@ export default class Game extends Phaser.Scene {
   }
 
   preload () {
-    //TODO: need to put the base path into an env variable?
     //2
     this.load.image('2_clubs', 'images/cards/2_of_clubs.png')
     this.load.image('2_diamonds', 'images/cards/2_of_diamonds.png')
@@ -96,31 +95,26 @@ export default class Game extends Phaser.Scene {
   }
 
   create () {
+    let self = this
     this.deck = new Deck()
     this.deck.shuffle()
-    this.isPlayerA = false
-    this.opponentCards = []
 
-    this.zone = new Zone(this)
-    this.dropZones = this.zone.renderZones()
-    this.zone.renderBaseCards()
+    this.playableArea = new PlayableArea(this)
+    this.playableArea.renderZones()
+    this.playableArea.renderBaseCards()
 
     this.dealer = new Dealer(this)
 
-    let self = this
-
-    // TODO: need to control this URL via env variable
-    // this.socket = io('localhost:4000/socket')
-    // this.socket.on('connect', function () {
-    //   console.log('Connected!')
-    // })
-
-    this.socket = new Socket('ws:localhost:4000/socket')
+    const socketUrl = new URL('/socket', window.location.href)
+    socketUrl.protocol = socketUrl.protocol.replace('http', 'ws')
+    this.socket = new Socket(socketUrl)
     this.socket.connect()
+
     this.channel = this.socket.channel('moves', {
+      // TODO: will use user id from db later
       userId: Math.floor(Math.random() * 100) + 1
     })
-    console.log('try to join')
+
     this.channel
       .join()
       .receive('ok', resp => {
@@ -130,46 +124,29 @@ export default class Game extends Phaser.Scene {
         console.log('Unable to join', resp)
       })
 
-    console.log('channel: ', this.channel)
-
-    this.channel.on('moves:isPlayerA', function () {
-      self.isPlayerA = true
-    })
-
     this.channel.on('moves:dealCards', function () {
       self.dealer.dealCards(self.deck)
       self.dealText.disableInteractive()
     })
 
-    //TODO: this isn't working properly. Need to reference the users own dropzone?
     this.channel.on('moves:cardPlayed', function (val) {
-      console.log('val yo: ', val)
-      const { gameObject, isPlayerA, dropZone, card } = val
-      console.log('gameObject: ', gameObject)
-      //TODO: need improvements here
-      console.log(self)
-      // if (isPlayerA !== self.isPlayerA) {
-      let sprite = gameObject.textureKey
-      let suit = sprite.split('_')[1]
-      let number = sprite.split('_')[0]
-      console.log('suit, number', suit, number)
-      self.opponentCards?.shift()?.destroy()
-      console.log('self.dropZone.data.values.cards: ', dropZone)
-      dropZone.data?.cards?.push(card)
-
+      const { gameObject, isPlayerA, dropZone: playedDropZone, card } = val
+      const sprite = gameObject.textureKey
+      const suit = sprite.split('_')[1]
+      const number = sprite.split('_')[0]
+      const dropZone = self.playableArea.getDropZoneBySuit(suit)
       let renderedCard = new Card(self)
       renderedCard
         .render(
-          dropZone.x - 350 + dropZone.data?.values?.cards?.length || 1 * 50,
-          dropZone.y,
+          dropZone.x,
+          dropZone.y + 350 + (dropZone.data.values.cards.length + 1) * 30,
           sprite
         )
         .disableInteractive()
-      // }
     })
 
     this.dealText = this.add
-      .text(75, 350, ['DEAL CARDS!'])
+      .text(75, 350, ['DEAL CARDS'])
       .setFontSize(18)
       .setFontFamily('Trebuchet MS')
       .setColor('#00ffff')
@@ -210,7 +187,6 @@ export default class Game extends Phaser.Scene {
       let sprite = gameObject.texture.key
       let suit = sprite.split('_')[1]
       let number = sprite.split('_')[0]
-
       const dropZoneSuit = dropZone.data.values.suit
 
       //only drop if correct suit
@@ -221,7 +197,6 @@ export default class Game extends Phaser.Scene {
         gameObject.disableInteractive()
         self.channel.push('moves:cardPlayed', {
           gameObject: gameObject,
-          isPlayerA: self.isPlayerA,
           dropZone: dropZone,
           sprite: sprite
         })
