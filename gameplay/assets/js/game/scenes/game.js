@@ -51,16 +51,30 @@ export default class Game extends Phaser.Scene {
       if (userId != self.channel.params.userId) {
         const suit = sprite.split('_')[1]
         const number = sprite.split('_')[0]
-        const dropZone = self.playableArea.getDropZoneBySuit(suit)
+        const dropZone = self.playableArea.getDropZoneBySuit(
+          suit,
+          playedDropZone.data.values.isAscending
+        )
         dropZone.data.values.cards.push(sprite)
         dropZone.data.values.updateCurrent(suit, number)
 
+        if (number == 7) {
+          const otherDropZone = self.playableArea.getDropZoneBySuit(
+            suit,
+            !playedDropZone.data.values.isAscending
+          )
+          otherDropZone.data.values.updateCurrent(suit, number)
+        }
+
         // TODO: in addition to ^, also update current low/high
+
+        const adjustment = dropZone.data.values.isAscending == true ? 1 : -1
         let renderedCard = new Card(self)
         renderedCard
           .render(
             dropZone.x,
-            dropZone.y + 350 + dropZone.data.values.cards.length * 30,
+            dropZone.y +
+              (350 + dropZone.data.values.cards.length * 30 * adjustment),
             sprite
           )
           .disableInteractive()
@@ -68,7 +82,7 @@ export default class Game extends Phaser.Scene {
     })
 
     this.dealText = this.add
-      .text(75, 350, ['DEAL CARDS'])
+      .text(75, 150, ['DEAL CARDS'])
       .setFontSize(18)
       .setFontFamily('Trebuchet MS')
       .setColor('#00ffff')
@@ -106,6 +120,7 @@ export default class Game extends Phaser.Scene {
 
     /** TODO: needs logic to test if correct card # as well as suit */
     this.input.on('drop', function (pointer, gameObject, dropZone) {
+      console.log('dropped: ', dropZone.data.list)
       let sprite = gameObject.texture.key
       let suit = sprite.split('_')[1]
       let number = sprite.split('_')[0]
@@ -114,8 +129,21 @@ export default class Game extends Phaser.Scene {
       if (isPlayable) {
         dropZone.data.values.cards.push(sprite)
         dropZone.data.values.updateCurrent(suit, number)
+        if (number == 7) {
+          //TODO: refactor this out
+          const otherDropZone = self.playableArea.getDropZoneBySuit(
+            suit,
+            !dropZone.data.values.isAscending
+          )
+          otherDropZone.data.values.updateCurrent(suit, number)
+        }
+
+        const adjustment = dropZone.data.values.isAscending == true ? 1 : -1
+
         gameObject.x = dropZone.x + 0
-        gameObject.y = dropZone.y + 350 + dropZone.data.values.cards.length * 30
+        gameObject.y =
+          dropZone.y +
+          (350 + dropZone.data.values.cards.length * 30 * adjustment)
         gameObject.disableInteractive()
         self.channel.push('moves:cardPlayed', {
           userId: self.channel.params.userId,

@@ -2,53 +2,94 @@ import Card from './card'
 import DropZoneData from './dropZoneData'
 export default class PlayableArea {
   constructor (scene) {
+    const CASA_OFFSET = 350
+    const starting_position = 200
+
     this.renderZones = () => {
+      const ascendingDropzoneOffset = 100
+      const descendingDropzoneOffset = 300
       const width = 150
       const height = 2000
-      const offset = 200
+      const offset = 700
 
-      this.dropZoneSpades = scene.add
-        .zone(475, 0, width, height)
+      this.dropZoneSpadesAscending = scene.add
+        .zone(ascendingDropzoneOffset, 0, width, height)
         .setRectangleDropZone(width, height)
-      this.dropZoneSpades.setData(new DropZoneData('spades'))
+      this.dropZoneSpadesAscending.setData(new DropZoneData('spades', true))
 
-      this.dropZoneHearts = scene.add
-        .zone(475 + offset, 0, width, height)
+      this.dropZoneSpadesDescending = scene.add
+        .zone(descendingDropzoneOffset, 0, width, height)
         .setRectangleDropZone(width, height)
-      this.dropZoneHearts.setData(new DropZoneData('hearts'))
+      this.dropZoneSpadesDescending.setData(new DropZoneData('spades', false))
 
-      this.dropZoneDiamonds = scene.add
-        .zone(475 + offset * 2, 0, width, height)
+      this.dropZoneHeartsAscending = scene.add
+        .zone(ascendingDropzoneOffset + offset, 0, width, height)
         .setRectangleDropZone(width, height)
-      this.dropZoneDiamonds.setData(new DropZoneData('diamonds'))
+      this.dropZoneHeartsAscending.setData(new DropZoneData('hearts', true))
 
-      this.dropZoneClubs = scene.add
-        .zone(475 + offset * 3, 0, width, height)
+      this.dropZoneHeartsDescending = scene.add
+        .zone(descendingDropzoneOffset + offset, 0, width, height)
         .setRectangleDropZone(width, height)
-      this.dropZoneClubs.setData(new DropZoneData('clubs'))
+      this.dropZoneHeartsDescending.setData(new DropZoneData('hearts', false))
 
-      this.dropZones = [
-        this.dropZoneSpades,
-        this.dropZoneHearts,
-        this.dropZoneDiamonds,
-        this.dropZoneClubs
+      this.dropZoneDiamondsAscending = scene.add
+        .zone(ascendingDropzoneOffset + offset * 2, 0, width, height)
+        .setRectangleDropZone(width, height)
+      this.dropZoneDiamondsAscending.setData(new DropZoneData('diamonds', true))
+
+      this.dropZoneDiamondsDescending = scene.add
+        .zone(descendingDropzoneOffset + offset * 2, 0, width, height)
+        .setRectangleDropZone(width, height)
+      this.dropZoneDiamondsDescending.setData(
+        new DropZoneData('diamonds', false)
+      )
+
+      this.dropZoneClubsAscending = scene.add
+        .zone(ascendingDropzoneOffset + offset * 3, 0, width, height)
+        .setRectangleDropZone(width, height)
+      this.dropZoneClubsAscending.setData(new DropZoneData('clubs', true))
+
+      this.dropZoneClubsDescending = scene.add
+        .zone(descendingDropzoneOffset + offset * 3, 0, width, height)
+        .setRectangleDropZone(width, height)
+      this.dropZoneClubsDescending.setData(new DropZoneData('clubs', false))
+
+      this.ascendingDropZones = [
+        this.dropZoneSpadesAscending,
+        this.dropZoneHeartsAscending,
+        this.dropZoneDiamondsAscending,
+        this.dropZoneClubsAscending
       ]
 
+      this.descendingDropZones = [
+        this.dropZoneSpadesDescending,
+        this.dropZoneHeartsDescending,
+        this.dropZoneDiamondsDescending,
+        this.dropZoneClubsDescending
+      ]
+      this.dropZones = this.ascendingDropZones.concat(this.descendingDropZones)
       return this.dropZones
     }
 
-    this.getDropZoneBySuit = suit => {
-      return this.dropZones.find(el => el.data.list.suit == suit)
+    this.getDropZoneBySuit = (suit, isAscending) => {
+      console.log('searching: ', this.dropZones)
+      return this.dropZones.find(
+        el =>
+          el.data.list.suit == suit && el.data.list.isAscending == isAscending
+      )
     }
-
     this.renderBaseCards = () => {
       // Renders the 4 base 'casa' cards.
       // TODO: potentially drive from the db?
       let card = new Card(scene)
-      card.renderFixed(475, 350, 'ace_spades')
-      card.renderFixed(675, 350, 'king_hearts')
-      card.renderFixed(875, 350, 'queen_diamonds')
-      card.renderFixed(1075, 350, 'jack_clubs')
+      card.renderFixed(starting_position, 350, 'ace_spades')
+      card.renderFixed(starting_position + CASA_OFFSET, 350, 'king_hearts')
+      card.renderFixed(
+        starting_position + CASA_OFFSET * 2,
+        350,
+        'queen_diamonds'
+      )
+      card.renderFixed(starting_position + CASA_OFFSET * 3, 350, 'jack_clubs')
     }
   }
 }
