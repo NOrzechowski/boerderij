@@ -11,6 +11,121 @@ export default class Game extends Phaser.Scene {
     })
   }
 
+  create () {
+    let self = this
+    this.deck = new Deck()
+    this.deck.shuffle()
+
+    this.playableArea = new PlayableArea(this)
+    this.playableArea.renderZones()
+    this.playableArea.renderBaseCards()
+
+    this.dealer = new Dealer(this)
+
+    const socketUrl = new URL('/socket', window.location.href)
+    socketUrl.protocol = socketUrl.protocol.replace('http', 'ws')
+    this.socket = new Socket(socketUrl)
+    this.socket.connect()
+
+    this.channel = this.socket.channel('moves', {
+      // TODO: will use user id from db later
+      userId: Math.floor(Math.random() * 100) + 1
+    })
+
+    this.channel
+      .join()
+      .receive('ok', resp => {
+        console.log('Joined successfully', resp)
+      })
+      .receive('error', resp => {
+        console.log('Unable to join', resp)
+      })
+
+    this.channel.on('moves:dealCards', function () {
+      self.dealer.dealCards(self.deck)
+      self.dealText.disableInteractive()
+    })
+
+    this.channel.on('moves:cardPlayed', function (val) {
+      const { userId, dropZone: playedDropZone, sprite } = val
+      if (userId != self.channel.params.userId) {
+        const suit = sprite.split('_')[1]
+        const number = sprite.split('_')[0]
+        const dropZone = self.playableArea.getDropZoneBySuit(suit)
+        dropZone.data.values.cards.push(sprite)
+        dropZone.data.values.updateCurrent(suit, number)
+
+        // TODO: in addition to ^, also update current low/high
+        let renderedCard = new Card(self)
+        renderedCard
+          .render(
+            dropZone.x,
+            dropZone.y + 350 + dropZone.data.values.cards.length * 30,
+            sprite
+          )
+          .disableInteractive()
+      }
+    })
+
+    this.dealText = this.add
+      .text(75, 350, ['DEAL CARDS'])
+      .setFontSize(18)
+      .setFontFamily('Trebuchet MS')
+      .setColor('#00ffff')
+      .setInteractive()
+
+    this.dealText.on('pointerdown', function () {
+      self.channel.push('moves:dealCards')
+    })
+
+    this.dealText.on('pointerover', function () {
+      self.dealText.setColor('#ff69b4')
+    })
+
+    this.dealText.on('pointerout', function () {
+      self.dealText.setColor('#00ffff')
+    })
+
+    this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
+      gameObject.x = dragX
+      gameObject.y = dragY
+    })
+
+    this.input.on('dragstart', function (pointer, gameObject) {
+      gameObject.setTint(0xff69b4)
+      self.children.bringToTop(gameObject)
+    })
+
+    this.input.on('dragend', function (pointer, gameObject, dropped) {
+      gameObject.setTint()
+      if (!dropped) {
+        gameObject.x = gameObject.input.dragStartX
+        gameObject.y = gameObject.input.dragStartY
+      }
+    })
+
+    /** TODO: needs logic to test if correct card # as well as suit */
+    this.input.on('drop', function (pointer, gameObject, dropZone) {
+      let sprite = gameObject.texture.key
+      let suit = sprite.split('_')[1]
+      let number = sprite.split('_')[0]
+      const isPlayable = dropZone.data.values.isPlayableCard(suit, number)
+      console.log('is playable??: ', isPlayable)
+      if (isPlayable) {
+        dropZone.data.values.cards.push(sprite)
+        dropZone.data.values.updateCurrent(suit, number)
+        gameObject.x = dropZone.x + 0
+        gameObject.y = dropZone.y + 350 + dropZone.data.values.cards.length * 30
+        gameObject.disableInteractive()
+        self.channel.push('moves:cardPlayed', {
+          userId: self.channel.params.userId,
+          dropZone: dropZone,
+          sprite: sprite
+        })
+      }
+    })
+  }
+
   preload () {
     //2
     this.load.image('2_clubs', 'images/cards/2_of_clubs.png')
@@ -92,118 +207,6 @@ export default class Game extends Phaser.Scene {
 
     // TODO: load remaining cards here
     this.load.image('back', 'images/card_back.png')
-  }
-
-  create () {
-    let self = this
-    this.deck = new Deck()
-    this.deck.shuffle()
-
-    this.playableArea = new PlayableArea(this)
-    this.playableArea.renderZones()
-    this.playableArea.renderBaseCards()
-
-    this.dealer = new Dealer(this)
-
-    const socketUrl = new URL('/socket', window.location.href)
-    socketUrl.protocol = socketUrl.protocol.replace('http', 'ws')
-    this.socket = new Socket(socketUrl)
-    this.socket.connect()
-
-    this.channel = this.socket.channel('moves', {
-      // TODO: will use user id from db later
-      userId: Math.floor(Math.random() * 100) + 1
-    })
-
-    this.channel
-      .join()
-      .receive('ok', resp => {
-        console.log('Joined successfully', resp)
-      })
-      .receive('error', resp => {
-        console.log('Unable to join', resp)
-      })
-
-    this.channel.on('moves:dealCards', function () {
-      self.dealer.dealCards(self.deck)
-      self.dealText.disableInteractive()
-    })
-
-    this.channel.on('moves:cardPlayed', function (val) {
-      const { userId, dropZone: playedDropZone, sprite } = val
-      if (userId != self.channel.params.userId) {
-        const suit = sprite.split('_')[1]
-        const number = sprite.split('_')[0]
-        const dropZone = self.playableArea.getDropZoneBySuit(suit)
-        dropZone.data.values.cards.push(sprite)
-        let renderedCard = new Card(self)
-        renderedCard
-          .render(
-            dropZone.x,
-            dropZone.y + 350 + dropZone.data.values.cards.length * 30,
-            sprite
-          )
-          .disableInteractive()
-      }
-    })
-
-    this.dealText = this.add
-      .text(75, 350, ['DEAL CARDS'])
-      .setFontSize(18)
-      .setFontFamily('Trebuchet MS')
-      .setColor('#00ffff')
-      .setInteractive()
-
-    this.dealText.on('pointerdown', function () {
-      self.channel.push('moves:dealCards')
-    })
-
-    this.dealText.on('pointerover', function () {
-      self.dealText.setColor('#ff69b4')
-    })
-
-    this.dealText.on('pointerout', function () {
-      self.dealText.setColor('#00ffff')
-    })
-
-    this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
-      gameObject.x = dragX
-      gameObject.y = dragY
-    })
-
-    this.input.on('dragstart', function (pointer, gameObject) {
-      gameObject.setTint(0xff69b4)
-      self.children.bringToTop(gameObject)
-    })
-
-    this.input.on('dragend', function (pointer, gameObject, dropped) {
-      gameObject.setTint()
-      if (!dropped) {
-        gameObject.x = gameObject.input.dragStartX
-        gameObject.y = gameObject.input.dragStartY
-      }
-    })
-
-    /** TODO: needs logic to test if correct card # as well as suit */
-    this.input.on('drop', function (pointer, gameObject, dropZone) {
-      let sprite = gameObject.texture.key
-      let suit = sprite.split('_')[1]
-      let number = sprite.split('_')[0]
-      const dropZoneSuit = dropZone.data.values.suit
-      console.log('dropping: ', self)
-      //only drop if correct suit
-      if (dropZoneSuit == suit) {
-        dropZone.data.values.cards.push(sprite)
-        gameObject.x = dropZone.x + 0
-        gameObject.y = dropZone.y + 350 + dropZone.data.values.cards.length * 30
-        gameObject.disableInteractive()
-        self.channel.push('moves:cardPlayed', {
-          userId: self.channel.params.userId,
-          dropZone: dropZone,
-          sprite: sprite
-        })
-      }
-    })
   }
 
   update () {}

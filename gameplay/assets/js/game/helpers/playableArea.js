@@ -1,5 +1,5 @@
 import Card from './card'
-
+import DropZoneData from './dropZoneData'
 export default class PlayableArea {
   constructor (scene) {
     this.renderZones = () => {
@@ -10,22 +10,22 @@ export default class PlayableArea {
       this.dropZoneSpades = scene.add
         .zone(475, 0, width, height)
         .setRectangleDropZone(width, height)
-      this.dropZoneSpades.setData({ suit: 'spades', pennies: 0, cards: [] })
+      this.dropZoneSpades.setData(new DropZoneData('spades'))
 
       this.dropZoneHearts = scene.add
         .zone(475 + offset, 0, width, height)
         .setRectangleDropZone(width, height)
-      this.dropZoneHearts.setData({ suit: 'hearts', pennies: 0, cards: [] })
+      this.dropZoneHearts.setData(new DropZoneData('hearts'))
 
       this.dropZoneDiamonds = scene.add
         .zone(475 + offset * 2, 0, width, height)
         .setRectangleDropZone(width, height)
-      this.dropZoneDiamonds.setData({ suit: 'diamonds', pennies: 0, cards: [] })
+      this.dropZoneDiamonds.setData(new DropZoneData('diamonds'))
 
       this.dropZoneClubs = scene.add
         .zone(475 + offset * 3, 0, width, height)
         .setRectangleDropZone(width, height)
-      this.dropZoneClubs.setData({ suit: 'clubs', pennies: 0, cards: [] })
+      this.dropZoneClubs.setData(new DropZoneData('clubs'))
 
       this.dropZones = [
         this.dropZoneSpades,

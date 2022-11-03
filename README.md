@@ -55,7 +55,7 @@ When connected to postgres/ecto, the overall architecture and flow will work som
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | users         | dynamic, not sure how I want to handle provisioning, OAuthing, logging in yet                                                |
 | game_instance | dynamic, with fks, game_id                                                                                                   |
-| cards         | static, just a table with 52 entries :)                                                                                      |
+| cards         | static, a table with 52 entries. Remember that some cards get removed based on the number of players                         |
 | shuffled_deck | dynamic, fk to game_instance, 52 entries per game basically?                                                                 |
 | game_hand     | dynamic, fks to user, game_instance, cards. #-of-cards-dealt entries per game?                                               |
 | game_moves    | dynamic, fks to game_instance, users, game_hand. Will basically hold every move played, including # of chips in the pot, etc |

@@ -20,6 +20,12 @@ defmodule GameplayWeb.BoraMovesChannel do
     {:noreply, socket}
   end
 
+  def handle_in("moves:validPlay?", params, socket) do
+    Logger.info("checking if valid play")
+    # TODO: way to send response directly to this socket?
+    {:noreply, socket}
+  end
+
   def handle_in("moves:cardPlayed", params, socket) do
     Logger.info("card played")
     broadcast!(socket, "moves:cardPlayed", params)
