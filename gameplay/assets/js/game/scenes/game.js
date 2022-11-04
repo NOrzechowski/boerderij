@@ -1,7 +1,7 @@
-import Card from '../helpers/card'
-import Dealer from '../helpers/dealer'
-import PlayableArea from '../helpers/playableArea'
-import Deck from '../helpers/deck'
+import Card from '../classes/card'
+import Dealer from '../classes/dealer'
+import PlayableArea from '../classes/playableArea'
+import Deck from '../classes/deck'
 const { Socket } = require('phoenix-channels')
 
 export default class Game extends Phaser.Scene {
@@ -29,7 +29,8 @@ export default class Game extends Phaser.Scene {
 
     this.channel = this.socket.channel('moves', {
       // TODO: will use user id from db later
-      userId: Math.floor(Math.random() * 100) + 1
+      userId: Math.floor(Math.random() * 100) + 1,
+      currentTokens: 100
     })
 
     this.channel
@@ -85,7 +86,7 @@ export default class Game extends Phaser.Scene {
       .text(75, 150, ['DEAL CARDS'])
       .setFontSize(18)
       .setFontFamily('Trebuchet MS')
-      .setColor('#00ffff')
+      .setColor('#ffffff')
       .setInteractive()
 
     this.dealText.on('pointerdown', function () {
@@ -93,11 +94,11 @@ export default class Game extends Phaser.Scene {
     })
 
     this.dealText.on('pointerover', function () {
-      self.dealText.setColor('#ff69b4')
+      self.dealText.setColor('#84cc16')
     })
 
     this.dealText.on('pointerout', function () {
-      self.dealText.setColor('#00ffff')
+      self.dealText.setColor('#ffffff')
     })
 
     this.input.on('drag', function (pointer, gameObject, dragX, dragY) {

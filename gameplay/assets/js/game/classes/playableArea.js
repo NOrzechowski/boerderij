@@ -10,7 +10,7 @@ export default class PlayableArea {
       const descendingDropzoneOffset = 300
       const width = 150
       const height = 2000
-      const offset = 700
+      const offset = CASA_OFFSET
 
       this.dropZoneSpadesAscending = scene.add
         .zone(ascendingDropzoneOffset, 0, width, height)
@@ -82,14 +82,19 @@ export default class PlayableArea {
       // Renders the 4 base 'casa' cards.
       // TODO: potentially drive from the db?
       let card = new Card(scene)
-      card.renderFixed(starting_position, 350, 'ace_spades')
-      card.renderFixed(starting_position + CASA_OFFSET, 350, 'king_hearts')
-      card.renderFixed(
-        starting_position + CASA_OFFSET * 2,
-        350,
-        'queen_diamonds'
-      )
-      card.renderFixed(starting_position + CASA_OFFSET * 3, 350, 'jack_clubs')
+      console.log(card)
+      // Phaser.Display.Align.In.LeftCenter(block, pic)
+      console.log('scene: ', scene)
+      const startX =
+        Math.floor(scene.game.config.width / CASA_OFFSET) +
+        Math.floor(CASA_OFFSET / 2)
+      console.log(scene.game.config.width)
+      console.log(CASA_OFFSET)
+      console.log(startX)
+      card.renderFixed(startX, 350, 'ace_spades')
+      card.renderFixed(startX + CASA_OFFSET, 350, 'king_hearts')
+      card.renderFixed(startX + CASA_OFFSET * 2, 350, 'queen_diamonds')
+      card.renderFixed(startX + CASA_OFFSET * 3, 350, 'jack_clubs')
     }
   }
 }
