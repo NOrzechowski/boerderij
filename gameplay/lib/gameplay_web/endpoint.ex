@@ -30,8 +30,9 @@ defmodule GameplayWeb.Endpoint do
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
-  if code_reloading? do
-    socket("/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket)
+if code_reloading? |> IO.inspect(label: :code_reloading) do
+    IO.inspect("reloading yo")
+    socket("/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket, websocket: true)
     plug(Phoenix.LiveReloader)
     plug(Phoenix.CodeReloader)
     plug(Phoenix.Ecto.CheckRepoStatus, otp_app: :gameplay)
